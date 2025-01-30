@@ -43,7 +43,7 @@ class WBAPI:
             "X-Hydra-API-Key": self.API_KEY,
             "X-Hydra-Access-Token": access_token,
         }
-        
+
     def set_mutex_lock(self, lock):
         self.lock = lock
 
@@ -130,7 +130,7 @@ class WBAPI:
 
         if not self.check_refresh_requirement(resp):
             return self.search(user)
-        
+
         if not resp.status_code // 100 == 2:
             print(resp.json())
             raise ValueError(resp.status_code)
@@ -140,25 +140,34 @@ class WBAPI:
     def search_by(self, user: Union[str, int], where: str) -> Optional[PublicAccount]:
         if where == "incoming":
             func = self.get_incoming
-        elif where == "outoging":
+        elif where == "outgoing":
             func = self.get_outgoing
+        elif where == "friends":
+            func = self.get_friends
         else:
             raise ValueError(f"What is {where}?")
 
-        resp = func("open")
+        try:
+            resp = func(state="open")
+        except ValueError:
+            return None
+        
         if isinstance(user, str):
             for friend in resp["results"]:
                 if friend["account"]["username"].strip().lower() == user.strip().lower():
                     return friend["account"]
         elif isinstance(user, int):
             return resp["results"][user]["account"]
+        else:
+            raise TypeError(f"What did you send? user with type {type(user)}???")
 
         return None
 
-    def get_incoming(self, state: str = "open") -> WBSearchResult:
+    def get_incoming(self, state: str = "open", sort: bool = True) -> WBSearchResult:
         """
         state: one of `open` `accepted` `cancelled` `declined`
         """
+        # Returned id is the invitation id and has sent_from and sent_to which can be used to identify the user's id instead of public id
         url = self.make_url(self.INVITE_URL, "incoming")
         # state = open
         resp = requests.get(
@@ -174,14 +183,20 @@ class WBAPI:
 
         if not self.check_refresh_requirement(resp):
             return self.get_incoming(state)
-        
+
         if not resp.status_code // 100 == 2:
             print(resp.json())
             raise ValueError(resp.status_code)
 
-        return resp.json()
+        data: WBSearchResult = resp.json()
 
-    def get_outgoing(self, state: str = "open") -> WBSearchResult:
+        if sort:
+            return self._sort_results(data)
+
+        return data
+
+    def get_outgoing(self, state: str = "open", sort: bool = True) -> WBSearchResult:
+        # Returned id is the invitation id and has sent_from and sent_to which can be used to identify the user's id instead of public id
         url = self.make_url(self.INVITE_URL, "outgoing")
         resp = requests.get(
             url,
@@ -196,12 +211,50 @@ class WBAPI:
 
         if not self.check_refresh_requirement(resp):
             return self.get_outgoing(state)
-        
+
         if not resp.status_code // 100 == 2:
             print(resp.json())
             raise ValueError(resp.status_code)
 
-        return resp.json()
+        data: WBSearchResult = resp.json()
+
+        if sort:
+            return self._sort_results(data)
+
+        return data
+
+    def get_friends(self, sort: bool = True, **kwargs) -> WBSearchResult:
+        url = self.make_url("friends", "me")
+        resp = requests.get(
+            url,
+            headers=self.headers,
+            params={
+                "page": 1,
+                "page_size": 100,
+                "expand_localiation": True,
+            },
+        )
+
+        if not self.check_refresh_requirement(resp):
+            return self.get_friends()
+
+        if not resp.status_code // 100 == 2:
+            print(resp.json())
+            raise ValueError(resp.status_code)
+
+        data: WBSearchResult = resp.json()
+
+        if sort:
+            return self._sort_results(data)
+
+        return data
+
+    def _sort_results(self, data: WBSearchResult) -> WBSearchResult:
+        data["results"] = sorted(
+            data["results"], key=lambda x: x["created_at"], reverse=True
+        )
+
+        return data
 
 
 # API Ref from MK12 Bin
