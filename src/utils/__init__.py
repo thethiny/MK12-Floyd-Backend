@@ -1,5 +1,5 @@
 import functools
-from api.errors import TokenExpired
+from src.api.errors import TokenExpired
 
 
 def retry_on_failure(before_retry_func=None):

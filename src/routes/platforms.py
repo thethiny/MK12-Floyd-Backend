@@ -1,8 +1,7 @@
-import os
 from typing import Callable
-from flask import Flask, request, jsonify, Blueprint
+from flask import request, jsonify, Blueprint
 
-from api.user_ids import get_psn_user_id, get_steam_user_id
+from src.api.user_ids import get_psn_user_id, get_steam_user_id
 
 platform_bp = Blueprint("platforms", __name__)
 

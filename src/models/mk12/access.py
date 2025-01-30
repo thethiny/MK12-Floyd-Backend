@@ -4,8 +4,8 @@ from typing import Any, List, Optional, Dict, TypedDict
 from enum import Enum
 from uuid import UUID
 
-from models.mk12.account import Account
-from models.mk12.profile import Profile
+from src.models.mk12.account import Account
+from src.models.mk12.profile import Profile
 
 
 class WbNetworkElement(TypedDict):

@@ -1,7 +1,7 @@
 from typing import Any, List, Tuple, TypeVar, Callable, Type, cast
 from uuid import UUID
 
-from models.common import (
+from src.models.common import (
     T,
     from_bool,
     from_datetime,
