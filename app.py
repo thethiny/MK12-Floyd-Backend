@@ -49,6 +49,8 @@ def main():
     else:
         if platform in ["psn", "ps4"]:
             platform = "ps5"
+        elif platform in ["xb1", "x360", "wingdk", "xbl"]:
+            platform = "xsx"
         user_id, status_code = find_any()
         if status_code != 200:
             return user_id, status_code # jsonify
