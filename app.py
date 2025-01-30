@@ -47,6 +47,8 @@ def main():
     if platform == "wb_network":
         user_id = wb_api.search(username.strip())["public_id"]
     else:
+        if platform in ["psn", "ps4"]:
+            platform = "ps5"
         user_id, status_code = find_any()
         if status_code != 200:
             return user_id, status_code # jsonify
@@ -74,10 +76,10 @@ def main():
         "username": username,
         "user_id": user_id,
         "user_platform": platform,
-        "hydra": {
+        "mk12": {
             "hydra_linked_platform": hydra_platform,
-            "hydra_platform_username": platform_name,
-            "username": hydra_name,
+            "linked_platform_username": platform_name,
+            "hydra_username": hydra_name,
             "user_id": hydra_id,
         }
     }
