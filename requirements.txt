@@ -1,0 +1,4 @@
+flask
+steam[client]
+requests
+gunicorn
