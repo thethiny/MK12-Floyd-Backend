@@ -73,7 +73,7 @@ class MK12API:
             ],
         }
 
-        headers = self.make_headers_dict(False, False)
+        headers = self.make_headers_dict(False, False, False)
         headers.update({
             "X-NRS-Kore-Response": "true",
         })
