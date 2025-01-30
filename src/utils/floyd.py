@@ -159,7 +159,7 @@ def parse_floyd_data(floyd_data, hydra_platform):
                 value = "Not Started"
             else:
                 value = "Not Finished"
-            tracker_dict["Chapter 15"] = value
+            tracker_dict["chapter_15"] = value
         elif floyd_chal_id == 9105:
             insert_value = value
             if value >= 20:
