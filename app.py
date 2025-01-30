@@ -78,7 +78,7 @@ def main():
             "hydra_linked_platform": hydra_platform,
             "hydra_platform_username": platform_name,
             "username": hydra_name,
-            "user_id": user_id,
+            "user_id": hydra_id,
         }
     }
 
