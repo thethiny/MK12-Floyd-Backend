@@ -20,7 +20,7 @@ def get_floyd_maps():
     }
     
     return name_maps
-    
+
 
 def get_floyd_data(user_profile: Profile):
     tracked_stats_ranges = list(range(9001, 9007)) + list(range(9100, 9107))
@@ -59,6 +59,7 @@ def parse_floyd_data(floyd_data, hydra_platform):
         "9001": 0,
         "encounters": 0,
         "challenges_checklist": {i+1: False for i in range(10)},
+        "challenges_mask": 0,
         "challenges_remaining": 10,
         "challenges_done": 0,
         "last_battle": "Not yet encountered",
@@ -74,9 +75,9 @@ def parse_floyd_data(floyd_data, hydra_platform):
         "tot_points": "20 Points left",
         "daily": "2 Quests left",
     }
-    
+
     tracker_dict_raw: Dict[int, Any] = {}
-    
+
     profile_counter = 0
 
     for k, value in floyd_data.get(hydra_platform, floyd_data.get("")).items(): # Replaced with hydra_platform cuz the game tracks different stats
@@ -86,13 +87,15 @@ def parse_floyd_data(floyd_data, hydra_platform):
         elif floyd_chal_id == 9002:
             tracker_dict["encounters"] = value
         elif floyd_chal_id == 9003:
-            value = [bool(int(bit)) for bit in bin(value)[2:].zfill(10)]
-            total = sum(value)
-            l = {i+1: v for i, v in enumerate(value)}
-            value = f"Done {total} - Remaining {10-total}"
+            _value = [bool(int(bit)) for bit in bin(value)[2:].zfill(10)]
+            total = sum(_value)
+            l = {i + 1: v for i, v in enumerate(_value)}
+            # value = f"Done {total} - Remaining {10-total}"
             tracker_dict["challenges_checklist"] = l
             tracker_dict["challenges_remaining"] = 10-total
             tracker_dict["challenges_done"] = total
+            tracker_dict['challenges_mask'] = value
+            value = bin(value)[2:].zfill(10)
         elif floyd_chal_id == 9004:
             if value == 0:
                 value = "Not yet encountered"
@@ -125,7 +128,9 @@ def parse_floyd_data(floyd_data, hydra_platform):
                     tracker_dict["fatal_finish"] += f" | Suggested {5-most_fatalities_done} more as {most_fatalities_done_as}"
             count = len(value)
             if count < 5:
-                tracker_dict["you_finish_yet"] = f"You need fatalities as {5-count} more characters!"
+                done_chars = value.keys()
+                tracker_dict["you_finish_yet"] = f"You need fatalities as {5-count} more characters other than: {', '.join(done_chars)}"
+
             else:
                 tracker_dict["you_finish_yet"] = "Complete"
                 profile_counter += 1
@@ -158,7 +163,7 @@ def parse_floyd_data(floyd_data, hydra_platform):
             elif value == 0:
                 value = "Not Started"
             else:
-                value = "Not Finished"
+                value = "Started But Not Finished"
             tracker_dict["chapter_15"] = value
         elif floyd_chal_id == 9105:
             insert_value = value
@@ -176,7 +181,7 @@ def parse_floyd_data(floyd_data, hydra_platform):
 
         tracker_dict_raw[floyd_chal_id] = value
         tracker_dict["losses"] = tracker_dict["encounters"] - tracker_dict["victories"]
-        
+
     hints = []
     if tracker_dict["challenges_done"] >= 10:
         hints.append("Floyd active! Go to versus to start the battle!")
@@ -188,7 +193,7 @@ def parse_floyd_data(floyd_data, hydra_platform):
             hints.append(f"You have {8-profile_counter} challenges between 30 and 37 to try!")
         else:
             hints.append(f"You have {remaining} challenges left between 1 and 29.")
-        
+
     if tracker_dict["encounters"]:
         if tracker_dict["last_battle"] == "Won":
             hints.append(f"I see you're going for another win. You got it!")
@@ -200,8 +205,7 @@ def parse_floyd_data(floyd_data, hydra_platform):
             hints.append(f"I don't know what happened in your last fight but remember to block more than you attack!")
     else:
         hints.append("The first time you meet floyd is gonna be epic! Good luck, rooting for you!")
-        
-        
+
     return {
         "raw": tracker_dict_raw,
         "parsed": tracker_dict,
