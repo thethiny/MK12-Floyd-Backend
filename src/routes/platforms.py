@@ -55,5 +55,7 @@ def find_any():
         return get_steam()
     elif platform == "hydra":
         return get_hydra()
+    elif platform == "epic":
+        return jsonify(user_id=username), 200
 
     return jsonify(error=f"Unsupported platform `{platform}`"), 400
