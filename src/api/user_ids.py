@@ -31,7 +31,7 @@ def get_steam_user_id(user: str) -> str:
         return steam_id
 
     steam_id = str(SteamID.from_url(f"https://steamcommunity.com/id/{user}")) # type: ignore
-    if not steam_id:
+    if not steam_id or steam_id == "None":
         raise ValueError(f"Couldn't find steam user {user}")
 
     return steam_id
