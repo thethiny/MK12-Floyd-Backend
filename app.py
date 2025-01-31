@@ -1,4 +1,6 @@
 import os
+
+from flask_cors import CORS
 is_windows = os.name == "nt"
 from threading import Lock
 from flask import Flask, request, jsonify, url_for, g
@@ -25,6 +27,7 @@ wb_api = WBAPI(authorization_code=api.wb_authorization_code) # Auth code is one 
 wb_api.set_mutex_lock(wb_lock)
 
 app = Flask("Floyd Tracker")
+CORS(app, resources={r"/*": {"origins": "*"}})
 app.register_blueprint(platform_bp, url_prefix="/platforms")
 
 # @app.before_request
