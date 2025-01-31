@@ -2,4 +2,5 @@ secrets*
 *.pyc
 __pycache__
 test.json
+test.py
 lookup_for.py

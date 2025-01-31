@@ -30,6 +30,8 @@ app = Flask("Floyd Tracker")
 CORS(app, resources={r"/*": {"origins": "*"}})
 app.register_blueprint(platform_bp, url_prefix="/platforms")
 
+hits = 0
+
 # @app.before_request
 # def load_globals():
 #     g.api = api
@@ -49,6 +51,9 @@ def sanitize_platform(platform: str):
 
 @app.route("/id")
 def get_wb_id_route():
+    global hits
+    hits += 1
+    print("Hits:", hits)
     params = request.args
 
     platform = params.get("platform", "").strip()
@@ -87,6 +92,9 @@ def get_wb_id_route():
 
 @app.get("/data")
 def get_floyd_data_route():
+    global hits
+    hits += 1
+    print("Hits:", hits)
     user_id = request.args.get("user_id", "")
     platform = request.args.get("platform", "")
     username = request.args.get("username", "")
