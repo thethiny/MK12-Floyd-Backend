@@ -21,7 +21,7 @@ def get_psn_user_id(user: str):
 def get_steam_user_id(user: str) -> str:
     if user.lower().startswith("http"):
         steam_id = str(steam64_from_url(user))
-        if not steam_id:
+        if not steam_id or steam_id == "None":
             raise ValueError(f"Couldn't find user for {user}")
         return steam_id
     
