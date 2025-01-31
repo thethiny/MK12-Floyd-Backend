@@ -153,13 +153,19 @@ class WBAPI:
             resp = func(state="open")
         except ValueError:
             return None
+        
+        try:
+            int_name = int(user)
+        except ValueError:
+            int_name = None
 
+        if int_name is not None:
+            return resp["results"][int_name]["account"]
+        
         if isinstance(user, str):
             for friend in resp["results"]:
                 if friend["account"]["username"].strip().lower() == user.strip().lower():
                     return friend["account"]
-        elif isinstance(user, int):
-            return resp["results"][user]["account"]
         else:
             raise TypeError(f"What did you send? user with type {type(user)}???")
 
