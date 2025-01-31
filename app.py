@@ -38,11 +38,13 @@ app.register_blueprint(platform_bp, url_prefix="/platforms")
 #     g.wb_lock = wb_lock
 
 def sanitize_platform(platform: str):
-    platform = platform.strip()
+    platform = platform.strip().lower()
     if platform in ["psn", "ps4"]:
         platform = "ps5"
     elif platform in ["xb1", "x360", "wingdk", "xbl"]:
         platform = "xsx"
+    elif platform in ["eos", "epicgames"]:
+        return "epic"
     return platform
 
 @app.route("/id")
@@ -54,20 +56,19 @@ def get_wb_id_route():
 
     if not username or not platform:
         return jsonify(error="`platform` and `username` are both required!"), 400
-    
+
     print(f"Received a request for getting id for {username} on {platform}")
 
-    platform = platform.lower() # Lowercase the platform
+    platform = sanitize_platform(platform) # Lowercase the platform
 
     if platform == "wb_network":
-        user_id = wb_api.search(username)["public_id"]
+        user_id = wb_api.search(username).get("public_id", "")
     elif platform.startswith("wb"):
         search_by = platform.split("_", 1)[-1]
         user_id = wb_api.search_by(username, search_by) # friend / incoming / outgoing
         if user_id:
-            user_id = user_id["public_id"]
+            user_id = user_id.get("public_id", "")
     else:
-        platform = sanitize_platform(platform)
         user_id, status_code = find_any()
         if status_code != 200:
             return user_id, status_code # jsonify
@@ -96,9 +97,9 @@ def get_floyd_data_route():
 
     platform = sanitize_platform(platform)
 
-    modules = api.get_mk_id_from_wb(user_id, platform)["player_modules"]
+    modules = api.get_mk_id_from_wb(user_id, platform).get("player_modules", [])
     if not len(modules):
-        return jsonify(error=f"User found but no id was returned from mk servers. If you're on Nintendo Switch, sorry."), 404
+        return jsonify(error=f"User found but no id was returned from mk servers. If you're on Nintendo Switch, sorry. Else try again later."), 404
 
     player_module = modules[0]
     hydra_id = player_module["hydra_id"]

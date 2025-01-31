@@ -144,7 +144,7 @@ class WBAPI:
             func = self.get_incoming
         elif where == "outgoing":
             func = self.get_outgoing
-        elif where == "friends":
+        elif where in ["friends", "friend"]:
             func = self.get_friends
         else:
             raise ValueError(f"What is {where}?")

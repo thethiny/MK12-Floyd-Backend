@@ -119,6 +119,8 @@ def parse_floyd_data(floyd_data, hydra_platform):
                 most_fatalities_done_as, most_fatalities_done = max(value.items(), key=lambda x: x[1])
             except ValueError:
                 most_fatalities_done_as, most_fatalities_done = None, 0
+            except AttributeError:
+                most_fatalities_done_as, most_fatalities_done = "Unknown", 1
             if most_fatalities_done >= 5:
                 tracker_dict["fatal_finish"] = "Complete"
                 profile_counter += 1
@@ -139,6 +141,8 @@ def parse_floyd_data(floyd_data, hydra_platform):
                 most_fatalities_done_as, most_fatalities_done = max(value.items(), key=lambda x: x[1])
             except ValueError:
                 most_fatalities_done_as, most_fatalities_done = None, 0
+            except AttributeError:
+                most_fatalities_done_as, most_fatalities_done = "Unknown", 1
             if most_fatalities_done >= 2:
                 tracker_dict["inner_beast"] = "Complete"
                 profile_counter += 1
