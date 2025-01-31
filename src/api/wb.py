@@ -1,4 +1,5 @@
 import os
+import re
 from typing import Optional, Union
 import requests
 
@@ -118,14 +119,15 @@ class WBAPI:
 
     def search(self, user: str) -> PublicAccount:
         url = self.make_url(self.SEARCH_URL)
+
+        is_email = re.match(r"^[\w\.-]+@[\w\.-]+\.\w+$", user) is not None
+        search_type = "email" if is_email else "username"
+        print("Search by", search_type)
+
         resp = requests.get(
             url.format(user=user),
             headers=self.headers,
-            params={
-                "expand_localization": True,
-                "type": "username",
-                "value": user
-            }
+            params={"expand_localization": True, "type": search_type, "value": user},
         )
 
         if not self.check_refresh_requirement(resp):
@@ -151,7 +153,7 @@ class WBAPI:
             resp = func(state="open")
         except ValueError:
             return None
-        
+
         if isinstance(user, str):
             for friend in resp["results"]:
                 if friend["account"]["username"].strip().lower() == user.strip().lower():
