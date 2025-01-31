@@ -51,6 +51,8 @@ def get_wb_id_route():
 
     if not username or not platform:
         return jsonify(error="`platform` and `username` are both required!"), 400
+    
+    print(f"Received a request for getting id for {username} on {platform}")
 
     if platform == "wb_network":
         user_id = wb_api.search(username)["public_id"]
@@ -84,6 +86,8 @@ def get_floyd_data_route():
         return jsonify(
             error=f"`user_id`, `platform`, and `username` are required. Info retrieved automatically from {url_for('get_wb_id_route')}"
         )
+
+    print(f"Received a request for getting id for {user_id} on {platform}")
 
     platform = sanitize_platform(platform)
 
