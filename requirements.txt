@@ -2,3 +2,5 @@ flask
 steam[client]
 requests
 gunicorn
+pyyaml
+python-dateutil

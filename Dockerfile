@@ -9,4 +9,4 @@ WORKDIR /app
 COPY src src
 COPY app.py .
 
-CMD ["-m", "app"]
+CMD ["gunicorn", "-k", "gevent", "-w", "1", "--worker-connections", "500", "--preload", "-b", "0.0.0.0:8000", "app:app"]
