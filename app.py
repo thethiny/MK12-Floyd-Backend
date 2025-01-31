@@ -57,6 +57,8 @@ def get_wb_id_route():
     
     print(f"Received a request for getting id for {username} on {platform}")
 
+    platform = platform.lower() # Lowercase the platform
+
     if platform == "wb_network":
         user_id = wb_api.search(username)["public_id"]
     elif platform.startswith("wb"):
