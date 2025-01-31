@@ -7,7 +7,7 @@ docker build -t $image -f sock.Dockerfile .
 docker run -it -d \
         --name $name \
         -v `pwd`/secrets.yaml:/app/secrets.yaml \
-        -v $sock_path:/api/sock \
+        -v $sock_path:/app/sock \
         --log-opt max-size=1m \
         --log-opt max-file=1 \
         --restart=on-failure \
