@@ -4,3 +4,4 @@ requests
 gunicorn
 pyyaml
 python-dateutil
+flask-cors
