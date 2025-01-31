@@ -117,7 +117,7 @@ class WBAPI:
             return False
         return True
 
-    def search(self, user: str) -> PublicAccount:
+    def search(self, user: str) -> Optional[PublicAccount]:
         url = self.make_url(self.SEARCH_URL)
 
         is_email = re.match(r"^[\w\.-]+@[\w\.-]+\.\w+$", user) is not None
@@ -135,6 +135,8 @@ class WBAPI:
 
         if not resp.status_code // 100 == 2:
             print(resp.json())
+            if resp.status_code == 404:
+                return None
             raise ValueError(resp.status_code)
 
         return resp.json()
@@ -153,7 +155,7 @@ class WBAPI:
             resp = func(state="open")
         except ValueError:
             return None
-        
+
         try:
             int_name = int(user)
         except ValueError:
@@ -161,7 +163,7 @@ class WBAPI:
 
         if int_name is not None:
             return resp["results"][int_name]["account"]
-        
+
         if isinstance(user, str):
             for friend in resp["results"]:
                 if friend["account"]["username"].strip().lower() == user.strip().lower():

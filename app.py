@@ -62,7 +62,9 @@ def get_wb_id_route():
     platform = sanitize_platform(platform) # Lowercase the platform
 
     if platform == "wb_network":
-        user_id = wb_api.search(username).get("public_id", "")
+        user_id = wb_api.search(username)
+        if user_id:
+            user_id = user_id.get("public_id", "")
     elif platform.startswith("wb"):
         search_by = platform.split("_", 1)[-1]
         user_id = wb_api.search_by(username, search_by) # friend / incoming / outgoing
