@@ -45,14 +45,16 @@ print("Starting with hits", id_hits, data_hits)
 #     g.wb_api = wb_api
 #     g.wb_lock = wb_lock
 
-def sanitize_platform(platform: str):
+def sanitize_platform(platform: str, wb: bool = False):
     platform = platform.strip().lower()
     if platform in ["psn", "ps4"]:
         platform = "ps5"
     elif platform in ["xb1", "x360", "wingdk", "xbl"]:
         platform = "xsx"
     elif platform in ["eos", "epicgames"]:
-        return "epic"
+        platform = "epic"
+    elif wb and platform.startswith("wb_"):
+        platform = "wb_network"
     return platform
 
 def write_hits():
@@ -132,7 +134,7 @@ def get_floyd_data_route():
 
     print(f"Received a request for getting id for {user_id} on {platform}")
 
-    platform = sanitize_platform(platform)
+    platform = sanitize_platform(platform, wb=True)
 
     modules = api.get_mk_id_from_wb(user_id, platform).get("player_modules", [])
     if not len(modules):
