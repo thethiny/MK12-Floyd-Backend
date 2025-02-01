@@ -111,7 +111,7 @@ class WBAPI:
         return url
 
     def check_refresh_requirement(self, resp: requests.Response):
-        if resp.status_code in [401, 403]:
+        if resp.status_code in [400, 401, 403]:
             self.refresh_required = True
             self.refresh()
             return False
