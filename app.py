@@ -31,10 +31,12 @@ app.register_blueprint(platform_bp, url_prefix="/platforms")
 
 try:
     with open("db/hits.txt", "r") as f:
-        id_hits, data_hits, *_ = [int(l.strip()) for l in f.readlines()]
-except Exception:
+        id_hits, data_hits, *_ = [int(l.strip()) for l in f.readlines() if l.strip()]
+except Exception as e:
+    print(e)
     id_hits = data_hits = 0
 
+print("Starting with hits", id_hits, data_hits)
 
 # @app.before_request
 # def load_globals():
@@ -54,6 +56,7 @@ def sanitize_platform(platform: str):
     return platform
 
 def write_hits():
+    print("Writing {id_hits=} {data_hits=}")
     with open("db/hits.txt", "w") as f:
         f.write(str(id_hits) + "\n")
         f.write(str(data_hits) + "\n")
