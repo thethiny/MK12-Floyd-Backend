@@ -8,6 +8,7 @@ docker run -it -d \
         --name $name \
         -v `pwd`/secrets.yaml:/app/secrets.yaml \
         -v $sock_path:/app/sock \
+        -v `pwd`/db:/app/db \
         --log-opt max-size=1m \
         --log-opt max-file=1 \
         --restart=on-failure \
