@@ -13,7 +13,6 @@ from src.utils import init_secrets
 steam_key, *_ = init_secrets()
 
 from src.api.mk12 import MK12API
-from src.api.user_ids import get_psn_user_id, get_steam_user_id
 from src.api.wb import WBAPI
 from src.routes.platforms import find_any, platform_bp
 
@@ -30,7 +29,12 @@ app = Flask("Floyd Tracker")
 CORS(app, resources={r"/*": {"origins": "*"}})
 app.register_blueprint(platform_bp, url_prefix="/platforms")
 
-hits = 0
+try:
+    with open("db/hits.txt", "r") as f:
+        id_hits, data_hits, *_ = [int(l.strip()) for l in f.readlines()]
+except Exception:
+    id_hits = data_hits = 0
+
 
 # @app.before_request
 # def load_globals():
@@ -49,11 +53,27 @@ def sanitize_platform(platform: str):
         return "epic"
     return platform
 
+def write_hits():
+    with open("db/hits.txt", "w") as f:
+        f.write(str(id_hits) + "\n")
+        f.write(str(data_hits) + "\n")
+
+def write_hits_mutex():
+    if id_hits % 200 != 1 and data_hits % 200 != 1:
+        return
+    if api.lock:
+        with api.lock:        
+            write_hits()
+    else:
+        write_hits()
+
 @app.route("/id")
 def get_wb_id_route():
-    global hits
-    hits += 1
-    print("Hits:", hits)
+    global id_hits
+    id_hits += 1
+    print("id hits:", id_hits)
+    write_hits_mutex()
+    
     params = request.args
 
     platform = params.get("platform", "").strip()
@@ -92,9 +112,11 @@ def get_wb_id_route():
 
 @app.get("/data")
 def get_floyd_data_route():
-    global hits
-    hits += 1
-    print("Hits:", hits)
+    global data_hits
+    data_hits += 1
+    print("data hits:", data_hits)
+    write_hits_mutex()
+    
     user_id = request.args.get("user_id", "")
     platform = request.args.get("platform", "")
     username = request.args.get("username", "")
