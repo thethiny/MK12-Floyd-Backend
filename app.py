@@ -94,8 +94,10 @@ def get_wb_id_route():
         if user_id:
             user_id = user_id.get("public_id", "")
     elif platform.startswith("wb"):
+        if username.isdigit():
+            return jsonify(error=f"Please enter a username instead of a number."), 403
         search_by = platform.split("_", 1)[-1]
-        user_id = wb_api.search_by(username, search_by) # friend / incoming / outgoing
+        user_id = wb_api.search_by(username, search_by, delete_afterwards=True) # friend / incoming / outgoing
         if user_id:
             user_id = user_id.get("public_id", "")
     else:
