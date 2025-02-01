@@ -4,7 +4,7 @@ from typing import Optional, Union
 import requests
 
 from src.models.wb_network.auth import WBAuthResult
-from src.models.wb_network.invitations import PublicAccount, WBSearchResult
+from src.models.wb_network.invitations import PublicAccount, WBProfileCard, WBSearchResult
 
 class WBAPI:
     ROOT_URL = "https://prod-network-api.wbagora.com"
@@ -141,13 +141,15 @@ class WBAPI:
 
         return resp.json()
 
-    def search_by(self, user: Union[str, int], where: str) -> Optional[PublicAccount]:
+    def search_by(self, user: Union[str, int], where: str, delete_afterwards: bool = False) -> Optional[PublicAccount]:
         if where == "incoming":
             func = self.get_incoming
         elif where == "outgoing":
             func = self.get_outgoing
+            delete_afterwards = False # Can't decline, only cancel # TODO: Change later with todo_afterwards
         elif where in ["friends", "friend"]:
             func = self.get_friends
+            delete_afterwards = False # Can't decline, only remove
         else:
             raise ValueError(f"What is {where}?")
 
@@ -167,6 +169,11 @@ class WBAPI:
         if isinstance(user, str):
             for friend in resp["results"]:
                 if friend["account"]["username"].strip().lower() == user.strip().lower():
+                    if delete_afterwards:
+                        try:
+                            self.decline_request(friend["id"])
+                        except ValueError:
+                            print(f"Friend found but couldn't decline {friend['id']}")
                     return friend["account"]
         else:
             raise TypeError(f"What did you send? user with type {type(user)}???")
@@ -185,7 +192,7 @@ class WBAPI:
             headers=self.headers,
             params={
                 "page": 1,
-                "page_size": 100,
+                "page_size": 200,
                 "state": state,
                 "expand_localization": True
             }
@@ -213,7 +220,7 @@ class WBAPI:
             headers=self.headers,
             params={
                 "page": 1,
-                "page_size": 100,
+                "page_size": 200,
                 "state": state,
                 "expand_localization": True,
             },
@@ -240,8 +247,8 @@ class WBAPI:
             headers=self.headers,
             params={
                 "page": 1,
-                "page_size": 100,
-                "expand_localiation": True,
+                "page_size": 200,
+                "expand_localization": True,
             },
         )
 
@@ -258,6 +265,28 @@ class WBAPI:
             return self._sort_results(data)
 
         return data
+
+    def decline_request(self, invite_id: str):
+        invite_id = invite_id.strip().lower()
+        url = self.make_url(self.INVITE_URL, invite_id, "decline")
+
+        resp = requests.put(
+            url, headers=self.headers, params={"expand_localizations": True}
+        )
+
+        if not self.check_refresh_requirement(resp):
+            return self.decline_request(invite_id)
+
+        if not resp.status_code // 100 == 2:
+            print(resp.json())
+            raise ValueError(resp.status_code)
+
+        data: WBProfileCard = resp.json()
+        if data["id"] != invite_id or data["state"] != "declined":
+            print(f"Failed to decline invitation {id}!")
+            raise ValueError(data["id"] + "=" + data["state"])
+
+        return True
 
     def _sort_results(self, data: WBSearchResult) -> WBSearchResult:
         data["results"] = sorted(
