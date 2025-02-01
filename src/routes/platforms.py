@@ -57,5 +57,9 @@ def find_any():
         return get_hydra()
     elif platform == "epic":
         return jsonify(user_id=username), 200
+    elif platform == "xsx":
+        if username.isdigit():
+            return jsonify(user_id=username), 200
+        return jsonify(error="Gamertag is not supported. Please lookup your Xbox Live User ID (XUID) and use it instead."), 400
 
     return jsonify(error=f"Unsupported platform `{platform}`"), 400
