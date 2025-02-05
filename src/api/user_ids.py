@@ -9,8 +9,9 @@ from src.api.xbl import Xbox
 init_secrets()
 try:
     xbox_client = Xbox(os.environ.get("OPSP_XR_CLIENT_ID", ""), token_cache_folder="db")
-except Exception:
+except Exception as e:
     xbox_client = None
+    print(f"Xbox client failed to instantiate due to: {e}")
 
 def get_xbox_xuid(user: str):
     if not xbox_client or not xbox_client.available:

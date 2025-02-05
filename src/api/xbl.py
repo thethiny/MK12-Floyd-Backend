@@ -43,10 +43,11 @@ class Xbox:
     def get_token(self):
         accounts = self.app.get_accounts()
         if accounts:
+            print("Xbox Account logged in")
             resp = self.app.acquire_token_silent(self.SCOPES, accounts[0])
         else:
             self.available = False
-            print("Account login required")
+            print("Xbox Account login required")
             raise ValueError("Xbox account requires auth which is not available in non interactive mode!")
             resp =  self.app.acquire_token_interactive(self.SCOPES)
 
