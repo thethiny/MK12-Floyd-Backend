@@ -44,6 +44,7 @@ class Xbox:
         else:
             self.available = False
             print("Account login required")
+            raise ValueError("Xbox account requires auth which is not available in non interactive mode!")
             resp =  self.app.acquire_token_interactive(self.SCOPES)
 
         if not resp or "access_token" not in resp:

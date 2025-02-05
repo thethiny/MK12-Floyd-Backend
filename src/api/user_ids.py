@@ -7,10 +7,13 @@ from src.utils import init_secrets
 from src.api.xbl import Xbox
 
 init_secrets()
-xbox_client = Xbox(os.environ.get("OPSP_XR_CLIENT_ID", ""), token_cache_folder="db")
+try:
+    xbox_client = Xbox(os.environ.get("OPSP_XR_CLIENT_ID", ""), token_cache_folder="db")
+except Exception:
+    xbox_client = None
 
 def get_xbox_xuid(user: str):
-    if not xbox_client.available:
+    if not xbox_client or not xbox_client.available:
         return -1
     try:
         gamertag = xbox_client.get_xuid_by_gamertag(user)
