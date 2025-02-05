@@ -40,6 +40,7 @@ class Xbox:
         else:
             print("Xbox Tokens do not exist!")
 
+    @prevent_over_refresh()
     def get_token(self):
         accounts = self.app.get_accounts()
         if accounts:
@@ -82,7 +83,6 @@ class Xbox:
 
         return headers
 
-    @prevent_over_refresh()
     def relogin(self):
         self.xbl_token = self.get_token()
         if self.xbl_token:
@@ -160,4 +160,3 @@ class Xbox:
         for xuid, gt in self.yield_search_xuids(results):
             if gamertag.lower().strip() == gt.lower().strip():
                 return xuid.strip()
-
