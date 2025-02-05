@@ -34,8 +34,11 @@ class Xbox:
 
     def load_cache(self):
         if os.path.exists(self.token_cache_file):
+            print("Xbox Tokens exist!")
             with open(self.token_cache_file) as f:
                 self.cache.deserialize(f.read())
+        else:
+            print("Xbox Tokens do not exist!")
 
     def get_token(self):
         accounts = self.app.get_accounts()
@@ -63,7 +66,7 @@ class Xbox:
 
         xsts_token = xsts_ticket.get("Token")
         xbl_token = f"XBL{self.XBL_VERSION} x={user_hash};{xsts_token}"
-        
+
         self.available = False
         return xbl_token
 
