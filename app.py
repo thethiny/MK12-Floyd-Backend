@@ -52,7 +52,7 @@ def write_hits():
         f.write(str(data_hits) + "\n")
 
 def write_hits_mutex():
-    if id_hits % 200 != 1 and data_hits % 200 != 1:
+    if (id_hits+data_hits) % 200 != 1:
         return
     if api.lock:
         with api.lock:        
