@@ -1,3 +1,4 @@
+import datetime
 import os
 import re
 from typing import Optional, Union
@@ -5,6 +6,7 @@ import requests
 
 from src.models.wb_network.auth import WBAuthResult
 from src.models.wb_network.invitations import PublicAccount, WBProfileCard, WBSearchResult
+from src.utils import prevent_over_refresh
 
 class WBAPI:
     ROOT_URL = "https://prod-network-api.wbagora.com"
@@ -24,6 +26,7 @@ class WBAPI:
         self.access_token = self.refresh_token = ""
         self.account = None
         self.refresh_required = True
+        self.refresh_time = datetime.datetime(1970, 1, 1)
         self.token = None
         self.lock = None
 
@@ -57,6 +60,7 @@ class WBAPI:
             if self.refresh_required:
                 self.login(self.refresh_token, "refresh_token")
 
+    @prevent_over_refresh()
     def login(self, grant_token: str, grant: str = "refresh_token"):
         url = self.make_url(self.AUTH_URL, "token")
 

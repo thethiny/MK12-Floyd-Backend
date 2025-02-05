@@ -1,5 +1,24 @@
+import os
 import requests
 from steam.steamid import SteamID, steam64_from_url
+
+from src.utils import init_secrets
+
+from src.api.xbl import Xbox
+
+init_secrets()
+xbox_client = Xbox(os.environ.get("OPSP_XR_CLIENT_ID", ""), token_cache_folder="db")
+
+def get_xbox_xuid(user: str):
+    if not xbox_client.available:
+        return -1
+    try:
+        gamertag = xbox_client.get_xuid_by_gamertag(user)
+        if not gamertag:
+            raise ValueError(404)
+    except ValueError:
+        raise ValueError(404)
+    return gamertag.strip()
 
 def get_psn_user_id(user: str):
     user = user.strip()
@@ -35,7 +54,6 @@ def get_steam_user_id(user: str) -> str:
         raise ValueError(f"Couldn't find steam user {user}")
 
     return steam_id
-
 
 if __name__ == "__main__":
     print(get_steam_user_id("76561199811000896"))

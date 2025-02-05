@@ -2,11 +2,14 @@ import os
 import uuid
 import requests
 
+from datetime import datetime, timedelta
+
 from src.models.mk12.access import Access, Profile
 from src.models.mk12.account import Account
 from src.models.mk12.envelope import ssc_envelope_response_from_dict
 from src.models.mk12.responses.error import HydraError
 from src.models.mk12.wb.player_modules import PlayerModules
+from src.utils import prevent_over_refresh
 
 class MK12API:
     ROOT_URL = "https://k1-api.wbagora.com"
@@ -26,6 +29,7 @@ class MK12API:
             self.setup_wb(wb_creds)
 
         self.refresh_required = True
+        self.refresh_time = datetime(1970, 1, 1)
         self.lock = None
 
     def set_mutex_lock(self, lock):
@@ -56,7 +60,8 @@ class MK12API:
             url += "/" + resources_string
         return url
 
-    def login(self):
+    @prevent_over_refresh()
+    def login(self):        
         url = self.make_url("access")
         body = {
             "auth": {
