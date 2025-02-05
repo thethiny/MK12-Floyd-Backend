@@ -15,6 +15,7 @@ except Exception as e:
 
 def get_xbox_xuid(user: str):
     if not xbox_client or not xbox_client.available:
+        print("Xbox client was not active!")
         return -1
     try:
         gamertag = xbox_client.get_xuid_by_gamertag(user)

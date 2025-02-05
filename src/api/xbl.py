@@ -68,7 +68,7 @@ class Xbox:
         xsts_token = xsts_ticket.get("Token")
         xbl_token = f"XBL{self.XBL_VERSION} x={user_hash};{xsts_token}"
 
-        self.available = False
+        self.available = True
         return xbl_token
 
     def get_headers(self, token: str = ""):

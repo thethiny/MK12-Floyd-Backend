@@ -83,7 +83,7 @@ def find_any():
         if username.isdigit():
             return jsonify(user_id=username), 200
         x_u = get_xbox()
-        if x_u == -1:
+        if x_u[0].get_json().get("user_id", -1) == -1:
             return jsonify(error="Gamertag support is inactive. Please lookup your Xbox Live User ID (XUID) and use it instead."), 400
         return x_u
 
