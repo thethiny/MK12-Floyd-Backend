@@ -69,7 +69,7 @@ def find_any():
     if not platform:
         return jsonify(error="Missing `platform` in query!"), 400
     
-    platform = sanitize_platform(platform)
+    platform = sanitize_platform(platform, wb=True)
 
     if platform in ["psn", "ps4", "ps5"]:
         return get_psn()
