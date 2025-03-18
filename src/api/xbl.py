@@ -13,7 +13,8 @@ class Xbox:
     SCOPES = ["Xboxlive.signin", "Xboxlive.offline_access"]
     XBL_VERSION = "3.0"
 
-    def __init__(self, client_id: str, token_cache_folder: str = "."):
+    def __init__(self, client_id: str, token_cache_folder: str = ".", interactive_mode: bool = False):
+        self.interactive_mode = interactive_mode
         self.cache = SerializableTokenCache()
 
         self.token_cache_file = os.path.join(token_cache_folder, self.TOKEN_CACHE_PATH)
@@ -49,7 +50,8 @@ class Xbox:
         else:
             self.available = False
             print("Xbox Account login required")
-            raise ValueError("Xbox account requires auth which is not available in non interactive mode!")
+            if not self.interactive_mode:
+                raise ValueError("Xbox account requires auth which is not available in non interactive mode!")
             resp =  self.app.acquire_token_interactive(self.SCOPES)
 
         if not resp or "access_token" not in resp:
@@ -60,6 +62,8 @@ class Xbox:
             raise ValueError(f"Xbox Failed to get access token")
         user_token = ticket.get("Token")
         user_hash = ticket.get("DisplayClaims", {}).get("xui", [{}])[0].get("uhs")
+        if not user_hash:
+            raise ValueError(f"Invalid User Hash returned from server")
 
         xsts_ticket = self.get_xsts_token(user_token)
 
