@@ -87,18 +87,20 @@ def parse_floyd_data(floyd_data, hydra_platform):
         elif floyd_chal_id == 9002:
             tracker_dict["encounters"] = value
         elif floyd_chal_id == 9003:
-            _value = [bool(int(bit)) for bit in bin(value)[2:].zfill(10)]
+            # challenges_count = 10
+            challenges_count = 37
+            _value = [bool(int(bit)) for bit in bin(value)[2:].zfill(challenges_count)]
             total = sum(_value)
-            l = {i + 1: v for i, v in enumerate(_value)}
+            l = {i + 1: v for i, v in enumerate(_value[::-1])} # Reverse order!
             # value = f"Done {total} - Remaining {10-total}"
             tracker_dict["challenges_checklist"] = l
-            tracker_dict["challenges_remaining"] = 10-total
+            tracker_dict["challenges_remaining"] = 10-total # 37 slots but 10 at most
             tracker_dict["challenges_done"] = total
             tracker_dict['challenges_mask'] = value
-            value = bin(value)[2:].zfill(10)
+            value = bin(value)[2:].zfill(challenges_count)
         elif floyd_chal_id == 9004:
             if value == 0:
-                value = "Not yet encountered"
+                value = "No Fight Information"
             elif value == 9:
                 value = "Lost"
             elif value == 12:
@@ -113,7 +115,7 @@ def parse_floyd_data(floyd_data, hydra_platform):
             if insert_value < 100:
                 tracker_dict["next_floyd_clue"] = f"You need at least {100-insert_value} fights before floyd may appear to give you a clue."
             else:
-                tracker_dict["next_floyd_clue"] = f"Next floyd clue within the next {500-insert_value} fights."
+                tracker_dict["next_floyd_clue"] = f"Floyd will pop up within the next {500-insert_value} fights. Even if he appears, that doesn't mean this is the challenge you need to do."
         elif floyd_chal_id == 9100:
             try:
                 most_fatalities_done_as, most_fatalities_done = max(value.items(), key=lambda x: x[1])
@@ -208,7 +210,8 @@ def parse_floyd_data(floyd_data, hydra_platform):
         elif tracker_dict["last_battle"] == "Lost":
             hints.append(f"You're gonna beat him this time. I'm sure of it!")
         else:
-            hints.append(f"I don't know what happened in your last fight but remember to block more than you attack!")
+            # hints.append(f"I don't know what happened in your last fight but remember to block more than you attack!")
+            hints.append(f"If you keep blocking, eventually Floyd will pause and you can hit him!")
     else:
         hints.append("The first time you meet floyd is gonna be epic! Good luck, rooting for you!")
 
