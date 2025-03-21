@@ -125,19 +125,19 @@ def parse_floyd_data(floyd_data, hydra_platform):
                 most_fatalities_done_as, most_fatalities_done = "Unknown", 1 # For standarization
                 value = {"Unknown": 1}  # For standarization
             if most_fatalities_done >= 5:
-                tracker_dict["fatal_finish"] = "Complete"
+                tracker_dict["you_finish_yet"] = "Complete"
                 profile_counter += 1
             else:
-                tracker_dict["fatal_finish"] = f"Incomplete"
+                tracker_dict["you_finish_yet"] = f"Incomplete"
                 if most_fatalities_done > 1:
-                    tracker_dict["fatal_finish"] += f" | Suggested {5-most_fatalities_done} more as {most_fatalities_done_as}"
+                    tracker_dict["you_finish_yet"] += f" | Suggested {5-most_fatalities_done} more as {most_fatalities_done_as}"
             count = len(value)
             if count < 5:
                 done_chars = value.keys()
-                tracker_dict["you_finish_yet"] = f"You need fatalities as {5-count} more characters other than: {', '.join(done_chars)}"
+                tracker_dict["fatal_finish"] = f"You need fatalities as {5-count} more characters other than: {', '.join(done_chars)}"
 
             else:
-                tracker_dict["you_finish_yet"] = "Complete"
+                tracker_dict["fatal_finish"] = "Complete"
                 profile_counter += 1
         elif floyd_chal_id == 9101:
             try:
