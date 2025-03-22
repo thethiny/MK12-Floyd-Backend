@@ -52,9 +52,13 @@ def do_stuff_with_seed(floyd_init: int, floyd_encounters: int):
     return seed_1, seed_2_1
 
 
-def shuffler(array: List[int], seed_1: int, seed_2: int):
+def shuffler(array: List[int], seed_1: int, seed_2: int, limit: int = -1):
     length = len(array)
-    for v15 in range(length):
+    cycles = range(length) # Perhaps -1 since last 2 arrays are always the same
+    if limit > 0:
+        cycles = range(limit)
+    
+    for v15 in cycles:
         v4 = seed_2
         v5 = (-length & 0xFFFFFFFF) % length
         v8 = v5 - 1  # This is only to enable the while loop

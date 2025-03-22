@@ -1,19 +1,22 @@
 import os
 
-from flask_cors import CORS
 is_windows = os.name == "nt"
 from threading import Lock
-from flask import Flask, request, jsonify, url_for, g
+from flask_cors import CORS
+from flask import Flask, request, jsonify, url_for
+
 if not is_windows:
     import gevent.monkey
     gevent.monkey.patch_all()
 
 from src.utils.floyd import get_floyd_data, get_floyd_maps, parse_floyd_data
+from src.utils.floyd_randomizer import convert_profile_id_to_seed, do_stuff_with_seed, make_platform_string, shuffler
 from src.utils import init_secrets
 steam_key, *_ = init_secrets()
 
 from src.api.mk12 import MK12API
 from src.api.wb import WBAPI
+from src.api.user_ids import is_valid_steam_id, sanitize_steam_user_id
 from src.routes.platforms import find_any, platform_bp, sanitize_platform
 
 mk_lock = Lock()
@@ -111,7 +114,7 @@ def get_floyd_data_route():
     data_hits += 1
     print("data hits:", data_hits)
     write_hits_mutex()
-    
+
     user_id = request.args.get("user_id", "")
     platform = request.args.get("platform", "")
     username = request.args.get("username", "")
@@ -131,21 +134,75 @@ def get_floyd_data_route():
     player_module = modules[0]
     hydra_id = player_module["hydra_id"]
     hydra_platform = player_module["platform"]
+    hydra_platform_id = player_module["platform_id"]
     platform_name = player_module["platform_name"]
+    wbpn_id = player_module["wbpn_id"]
     hydra_name = player_module["wbpn_name"]
 
     profile = api.get_profile(hydra_id)
     floyd_data = get_floyd_data(profile)
     parsed_data = parse_floyd_data(floyd_data, hydra_platform)
     floyd_map = get_floyd_maps()
-    
+
+    supported_floyd_guess_platforms = ["ps5", "steam"]
+
+    floyd_platform = platform
+    if platform == "wb_network":
+        floyd_platform = hydra_platform
+        floyd_platform_id = hydra_platform_id
+        found = True
+        if floyd_platform not in ["ps5", "xsx", "steam", "epic", "nx"]: # Not allowed
+            # If has no platform id then try to get his steam info cuz the rest have no id exposed
+            try:
+                account = api.get_account(hydra_id)
+                alternate_identities = account["identity"]["alternate"]
+                if "steam" in alternate_identities: # Only steam id is exposed
+                    floyd_platform = "steam"
+                    floyd_platform_id = alternate_identities["steam"][0]["id"]
+                    found = True
+                else:
+                    found = False
+            except Exception:
+                found = False
+
+        if floyd_platform not in supported_floyd_guess_platforms:
+            found = False # Only PS5 and Steam supported so far
+
+        if found:
+            if floyd_platform == "steam":
+                floyd_platform_id = str(sanitize_steam_user_id(floyd_platform_id).as_64) # Sanitize cuz mk stores wrong id
+            floyd_string = make_platform_string(floyd_platform, floyd_platform_id, hydra_id, wbpn_id)
+    elif platform in supported_floyd_guess_platforms:
+        floyd_platform_id = user_id
+        if platform == "steam":
+            floyd_platform_id = str(sanitize_steam_user_id(floyd_platform_id).as_64) # Sanitize cuz mk stores wrong id
+        floyd_string = make_platform_string(platform, floyd_platform_id, hydra_id, wbpn_id)
+    else:
+        floyd_string = ""
+
+    floyd_challenges = []
+    if floyd_string:
+        hashed = convert_profile_id_to_seed(floyd_string)
+        # replace with floyd counter
+        floyd_counter = parsed_data.get("parsed", {}).get("encounters", 0)
+        seed1, seed2 = do_stuff_with_seed(hashed, floyd_counter)
+
+        floyd_challenges = list(range(37))
+        shuffler(floyd_challenges, seed1, seed2, 10)
+
+        floyd_challenges = [a + 1 for a in sorted(floyd_challenges[:10])]
+
     if username.lower().strip() == user_id.lower().strip(): # no username found
+        username = platform_name
+
+    if platform == "steam" and is_valid_steam_id(username): # if passed username then rename
         username = platform_name
 
     user_obj = {
         "username": username,
         "user_id": user_id,
         "user_platform": platform,
+        "floyd_platform": floyd_platform,
         "mk12": {
             "hydra_linked_platform": hydra_platform,
             "linked_platform_username": platform_name,
@@ -158,6 +215,7 @@ def get_floyd_data_route():
         "parsed": parsed_data["parsed"],
         "raw": {floyd_map[f"profilestat{k}"]: v for k, v in parsed_data["raw"].items()},
         "hints": parsed_data["hints"],
+        "challenges": floyd_challenges,
     }
 
     return jsonify(user=user_obj, data=parsed_data)

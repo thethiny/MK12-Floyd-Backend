@@ -42,16 +42,24 @@ def get_psn_user_id(user: str):
         raise ValueError(f"Server returned empty user_id!")
     return user_id
 
+def is_valid_steam_id(steam_id):
+    return SteamID(steam_id) != 0
+
+def sanitize_steam_user_id(steam_id: str):
+    return SteamID(SteamID(steam_id).as_32)
+
 def get_steam_user_id(user: str) -> str:
     if user.lower().startswith("http"):
         steam_id = str(steam64_from_url(user))
         if not steam_id or steam_id == "None":
             raise ValueError(f"Couldn't find user for {user}")
         return steam_id
-    
+
     steam_id = str(SteamID(user)).strip()
 
     if steam_id and steam_id != "0":
+        # recreate steam_id for users with old profiles
+        steam_id = str(sanitize_steam_user_id(steam_id).as_64)
         return steam_id
 
     steam_id = str(SteamID.from_url(f"https://steamcommunity.com/id/{user}")) # type: ignore

@@ -12,7 +12,7 @@ def sanitize_platform(platform: str, wb: bool = False):
         platform = "ps5"
     elif platform in ["xb1", "x360", "wingdk", "xbl"]:
         platform = "xsx"
-    elif platform in ["eos", "epicgames"]:
+    elif platform in ["eos", "epicgames", "egs"]:
         platform = "epic"
     elif wb and platform.startswith("wb_"):
         platform = "wb_network"

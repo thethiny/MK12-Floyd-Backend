@@ -5,3 +5,4 @@ gunicorn
 pyyaml
 python-dateutil
 flask-cors
+cityhash
