@@ -5,6 +5,17 @@ import cityhash
 def concat(a: int, b: int):
     return ((a & 0xFFFFFFFF) << 32) | (b & 0xFFFFFFFF)
 
+PLATFORM_STRING_FMT = "{platform}:{platform_id}/{mk_id}/{wb_id}"
+def make_platform_string(platform: str, platform_id: str, mk_id: str, wb_id: str):
+    platform = platform.strip().upper()
+    platform_id = platform_id.strip().lower()
+    mk_id = mk_id.strip().lower()
+    wb_id = wb_id.strip().lower()
+
+    return PLATFORM_STRING_FMT.format(
+        platform=platform, platform_id=platform_id, mk_id=mk_id, wb_id=wb_id
+    ).strip()
+
 
 def convert_profile_id_to_seed(profile_id_string: str):
     string = profile_id_string.encode("utf-16-le")
@@ -81,6 +92,8 @@ if __name__ == "__main__":
 
     string = "PLATFORM:PLATFORM_ID/MK_ACCOUNT_ID/WB_PRIVATE_ACCOUNT_ID"
     floyd_counter = 5
+    string = make_platform_string(
+    )
 
     hashed = convert_profile_id_to_seed(string)  # expect 0x3D9C8B74
     print(f"Hashed {string} -> {hex(hashed)}")
