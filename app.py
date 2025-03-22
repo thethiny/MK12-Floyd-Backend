@@ -147,6 +147,7 @@ def get_floyd_data_route():
     supported_floyd_guess_platforms = ["ps5", "steam"]
 
     floyd_platform = platform
+    floyd_string = ""
     if platform == "wb_network":
         floyd_platform = hydra_platform
         floyd_platform_id = hydra_platform_id
