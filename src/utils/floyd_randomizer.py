@@ -8,6 +8,12 @@ def concat(a: int, b: int):
 PLATFORM_STRING_FMT = "{platform}:{platform_id}/{mk_id}/{wb_id}"
 def make_platform_string(platform: str, platform_id: str, mk_id: str, wb_id: str):
     platform = platform.strip().upper()
+    
+    if platform == "XSX":
+        platform = "GDK"
+    elif platform == "EPIC":
+        platform = "EOS"
+    
     platform_id = platform_id.strip().lower()
     mk_id = mk_id.strip().lower()
     wb_id = wb_id.strip().lower()
@@ -27,7 +33,7 @@ def convert_profile_id_to_seed(profile_id_string: str):
     return hash & 0xFFFFFFFF
 
 
-def do_stuff_with_seed(floyd_init: int, floyd_encounters: int):
+def create_seeds_from_key(floyd_init: int, floyd_encounters: int):
     seed_2_0 = 0x280AF6FDEECF029F
     seed_2_1 = seed_2_0
     mask_64 = 0xFFFFFFFFFFFFFFFF
@@ -103,7 +109,7 @@ if __name__ == "__main__":
     print(f"Hashed {string} -> {hex(hashed)}")
 
     print(f"Shuffling counter = {floyd_counter}")
-    seed_1, seed_2 = do_stuff_with_seed(hashed, floyd_counter)
+    seed_1, seed_2 = create_seeds_from_key(hashed, floyd_counter)
     shuffler(array, seed_1, seed_2)
 
     shuffled = [a + 1 for a in array]

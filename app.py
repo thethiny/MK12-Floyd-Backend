@@ -10,7 +10,7 @@ if not is_windows:
     gevent.monkey.patch_all()
 
 from src.utils.floyd import get_floyd_data, get_floyd_maps, parse_floyd_data
-from src.utils.floyd_randomizer import convert_profile_id_to_seed, do_stuff_with_seed, make_platform_string, shuffler
+from src.utils.floyd_randomizer import convert_profile_id_to_seed, create_seeds_from_key, make_platform_string, shuffler
 from src.utils import init_secrets
 steam_key, *_ = init_secrets()
 
@@ -144,13 +144,15 @@ def get_floyd_data_route():
     parsed_data = parse_floyd_data(floyd_data, hydra_platform)
     floyd_map = get_floyd_maps()
 
-    supported_floyd_guess_platforms = ["ps5", "steam"]
+    supported_floyd_guess_platforms = ["ps5", "steam", "xsx", "epic"]
 
     floyd_platform = platform
     floyd_string = ""
+    floyd_platform_name = username
     if platform == "wb_network":
         floyd_platform = hydra_platform
         floyd_platform_id = hydra_platform_id
+        floyd_platform_name = platform_name
         found = True
         if floyd_platform not in ["ps5", "xsx", "steam", "epic", "nx"]: # Not allowed
             # If has no platform id then try to get his steam info cuz the rest have no id exposed
@@ -160,14 +162,18 @@ def get_floyd_data_route():
                 if "steam" in alternate_identities: # Only steam id is exposed
                     floyd_platform = "steam"
                     floyd_platform_id = alternate_identities["steam"][0]["id"]
+                    floyd_platform_name = alternate_identities["steam"][0]["username"]
                     found = True
                 else:
+                    floyd_platform = platform # wb_network
+                    floyd_platform_name = username # The wb name
                     found = False
             except Exception:
                 found = False
+            
 
         if floyd_platform not in supported_floyd_guess_platforms:
-            found = False # Only PS5 and Steam supported so far
+            found = False # NX not supported as usual
 
         if found:
             if floyd_platform == "steam":
@@ -175,18 +181,17 @@ def get_floyd_data_route():
             floyd_string = make_platform_string(floyd_platform, floyd_platform_id, hydra_id, wbpn_id)
     elif platform in supported_floyd_guess_platforms:
         floyd_platform_id = user_id
+        floyd_platform_name = platform_name
         if platform == "steam":
             floyd_platform_id = str(sanitize_steam_user_id(floyd_platform_id).as_64) # Sanitize cuz mk stores wrong id
         floyd_string = make_platform_string(platform, floyd_platform_id, hydra_id, wbpn_id)
-    else:
-        floyd_string = ""
 
     floyd_challenges = []
     if floyd_string:
         hashed = convert_profile_id_to_seed(floyd_string)
         # replace with floyd counter
         floyd_counter = parsed_data.get("parsed", {}).get("encounters", 0)
-        seed1, seed2 = do_stuff_with_seed(hashed, floyd_counter)
+        seed1, seed2 = create_seeds_from_key(hashed, floyd_counter)
 
         floyd_challenges = list(range(37))
         shuffler(floyd_challenges, seed1, seed2, 10)
@@ -198,7 +203,12 @@ def get_floyd_data_route():
 
     if platform == "steam" and is_valid_steam_id(username): # if passed username then rename
         username = platform_name
-
+    elif platform == "wb_network": # Change username to something else
+        if floyd_platform in supported_floyd_guess_platforms:
+            username = floyd_platform_name
+    elif platform == hydra_platform:
+        username = platform_name # For Casing
+    
     user_obj = {
         "username": username,
         "user_id": user_id,
