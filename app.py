@@ -170,7 +170,6 @@ def get_floyd_data_route():
                     found = False
             except Exception:
                 found = False
-            
 
         if floyd_platform not in supported_floyd_guess_platforms:
             found = False # NX not supported as usual
@@ -201,14 +200,20 @@ def get_floyd_data_route():
     if username.lower().strip() == user_id.lower().strip(): # no username found
         username = platform_name
 
-    if platform == "steam" and is_valid_steam_id(username): # if passed username then rename
-        username = platform_name
+    if platform == hydra_platform:
+        username = platform_name # Get your username from your identity provider
+    elif platform == "steam":
+        if is_valid_steam_id(username): # if passed user_id then rename
+            username = platform_name # Replace the numbers with something meaningful, perhaps later replace with steamworks api
+    # elif platform == "epic":
+    #   if is_valid_epic_id(username): # Replace user_id with something meaningful from epic api
+    #       username = platform_name
     elif platform == "wb_network": # Change username to something else
-        if floyd_platform in supported_floyd_guess_platforms:
+        if floyd_platform in supported_floyd_guess_platforms: # if the main platform is supported, use that. Else use your wb_id
             username = floyd_platform_name
-    elif platform == hydra_platform:
-        username = platform_name # For Casing
-    
+        else:
+            username = hydra_name
+
     user_obj = {
         "username": username,
         "user_id": user_id,
