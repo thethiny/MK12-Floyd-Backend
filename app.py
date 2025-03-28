@@ -233,8 +233,15 @@ def get_floyd_data_route():
         "hints": parsed_data["hints"],
         "challenges": floyd_challenges,
     }
+    
+    metadata = {
+        "hits": {
+            "lookup": id_hits,
+            "profile": data_hits,
+        }
+    }
 
-    return jsonify(user=user_obj, data=parsed_data)
+    return jsonify(user=user_obj, data=parsed_data, meta=metadata)
 
 
 if __name__ == "__main__":
