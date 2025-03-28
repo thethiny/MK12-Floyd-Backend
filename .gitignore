@@ -5,3 +5,6 @@ test.json
 test.py
 lookup_for.py
 db*/
+
+dumps
+*.log
