@@ -191,7 +191,7 @@ def parse_floyd_data(floyd_data, hydra_platform):
         tracker_dict["losses"] = tracker_dict["encounters"] - tracker_dict["victories"]
 
     hints = []
-    if tracker_dict["challenges_done"] >= 10:
+    if False and tracker_dict["challenges_done"] >= 10: # Disabled due to update
         hints.append("Floyd active! Go to versus to start the battle!")
     else:
         remaining = tracker_dict["challenges_remaining"]

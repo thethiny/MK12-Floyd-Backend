@@ -195,7 +195,8 @@ def get_floyd_data_route():
         floyd_challenges = list(range(37))
         shuffler(floyd_challenges, seed1, seed2, 10)
 
-        floyd_challenges = [a + 1 for a in sorted(floyd_challenges[:10])]
+        floyd_challenges = [a + 1 for a in floyd_challenges[:10]]
+        print(floyd_string, hashed, floyd_counter, "\n", floyd_challenges)
 
     if username.lower().strip() == user_id.lower().strip(): # no username found
         username = platform_name
@@ -233,7 +234,7 @@ def get_floyd_data_route():
         "hints": parsed_data["hints"],
         "challenges": floyd_challenges,
     }
-    
+
     metadata = {
         "hits": {
             "lookup": id_hits,
