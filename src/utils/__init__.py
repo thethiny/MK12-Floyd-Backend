@@ -24,16 +24,21 @@ def init_secrets():
     try:
         with open("secrets.yaml", encoding="utf-8") as f:
             secrets = yaml.safe_load(f)
-            steam_key = secrets["creds"]["steam"]
             mk12_key = secrets["keys"]["mk"]
             wb_key = secrets["keys"].get("wb")
+            steam_key = secrets["creds"]["steam"]
             msclientid = secrets["creds"].get("msclientid")
+            epic = secrets["creds"].get("epic", {})
+            epic_client = epic.get("client")
+            epic_secret = epic.get("secret")
             os.environ.update(
                 {
                     "STEAM_KEY": steam_key,
                     "MK12_API_KEY": mk12_key,
                     "WB_API_KEY": wb_key,
                     "OPSP_XR_CLIENT_ID": msclientid,
+                    "EPIC_CLIENT_ID": epic_client,
+                    "EPIC_CLIENT_SECRET": epic_secret,
                 }
             )
     except FileNotFoundError:

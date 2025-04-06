@@ -200,7 +200,10 @@ def parse_floyd_data(floyd_data, hydra_platform):
         if profile_counter < 8:
             hints.append(f"You have {8-profile_counter} challenges between 30 and 37 to try!")
         else:
-            hints.append(f"You have {remaining} challenges left between 1 and 29.")
+            if remaining > 0:
+                hints.append(f"You have {remaining} challenges left between 1 and 29.")
+            else:
+                hints.append(f"Tracker incorrectly tracking your profile. You either are playing on more than 1 platform at once, or you need to use offline mode.")
 
     if tracker_dict["encounters"]:
         if tracker_dict["last_battle"] == "Won":

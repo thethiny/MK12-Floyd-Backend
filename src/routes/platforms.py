@@ -1,6 +1,7 @@
 from typing import Callable
-from flask import request, jsonify, Blueprint
+from flask import current_app, request, jsonify, Blueprint
 
+from src.api.auth import auth_epic
 from src.api.user_ids import get_psn_user_id, get_steam_user_id, get_xbox_xuid
 
 platform_bp = Blueprint("platforms", __name__)
@@ -35,6 +36,25 @@ def get_platform(platform_func: Callable):
     return jsonify(user_id=user), 200
 
 
+def auth_platform(platform_func: Callable,):
+    code = request.args.get("code", "").strip()
+    if not code:
+        return {"error": "Missing `code` in query!"}, 400
+
+    try:
+        user_id, username = platform_func(code.strip())
+    except ValueError:
+        return {"error": f"Server Error Authenticating {code}"}, 400
+
+    if not user_id:
+        return {"error": f"Couldn't get user profile from auth"}, 404
+    
+    if not username:
+        print(f"Warning: Missing username from {platform_func}")
+
+    return dict(user_id=user_id, username=username), 200
+
+
 @platform_bp.get("/ps5")
 @platform_bp.get("/ps4")
 @platform_bp.get("/psn")
@@ -46,6 +66,7 @@ def get_psn():
 @platform_bp.get("xb1")
 @platform_bp.get("xbl")
 @platform_bp.get("wingdk")
+@platform_bp.get("gdk")
 def get_xbox():
     return get_platform(get_xbox_xuid)
 
@@ -86,5 +107,34 @@ def find_any():
         if x_u[0].get_json().get("user_id", -1) == -1:
             return jsonify(error="Gamertag support is inactive. Please lookup your Xbox Live User ID (XUID) and use it instead."), 400
         return x_u
+    elif platform.startswith("auth_"):
+        provider = platform.split("_", 1)[-1].strip()
+        
+        args = {
+            "code": username,
+            "provider": provider,
+        }
+        
+        with current_app.test_request_context("/auth", query_string=args):
+            return auth_any()
+        # resp, status_code = auth_any()
+                
+        # return jsonify(resp), status_code
 
     return jsonify(error=f"Unsupported platform `{platform}`"), 400
+
+@platform_bp.get("/auth/<string:provider>")
+@platform_bp.get("/auth")
+def auth_any(provider: str = ""):
+    provider = provider.strip()
+    if not provider:
+        provider = request.args.get("provider", "").strip()
+    provider = sanitize_platform(provider)
+    
+    if provider == "epic":
+        user_dict, status_code = auth_platform(auth_epic)
+    else:
+        return jsonify(error=f"Unsupported Auth Provider {provider}"), 400
+    
+    user_dict["provider"] = provider
+    return jsonify(user_dict), status_code

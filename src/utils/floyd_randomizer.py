@@ -5,15 +5,28 @@ import cityhash
 def concat(a: int, b: int):
     return ((a & 0xFFFFFFFF) << 32) | (b & 0xFFFFFFFF)
 
-PLATFORM_STRING_FMT = "{platform}:{platform_id}/{mk_id}/{wb_id}"
-def make_platform_string(platform: str, platform_id: str, mk_id: str, wb_id: str):
+PLATFORM_STRING_OFFLINE_FMT = "{platform}:{platform_id}"
+PLATFORM_STRING_FMT = PLATFORM_STRING_OFFLINE_FMT + "/{mk_id}/{wb_id}"
+OFFLINE_PLATFORMS = {"STEAM", "EOS"}
+def make_platform_string(platform: str, platform_id: str, mk_id: str = "", wb_id: str = ""):
     platform = platform.strip().upper()
-    
+
     if platform == "XSX":
         platform = "GDK"
     elif platform == "EPIC":
         platform = "EOS"
-    
+
+    offline = False
+    if not mk_id and not wb_id:
+        offline = True
+
+    if offline:
+        if platform not in OFFLINE_PLATFORMS:
+            raise ValueError(f"Unsupported offline platform {platform}!")
+        return PLATFORM_STRING_OFFLINE_FMT.format(
+            platform=platform, platform_id=platform_id
+        )
+
     platform_id = platform_id.strip().lower()
     mk_id = mk_id.strip().lower()
     wb_id = wb_id.strip().lower()

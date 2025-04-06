@@ -69,7 +69,7 @@ def get_wb_id_route():
     id_hits += 1
     print("id hits:", id_hits)
     write_hits_mutex()
-    
+
     params = request.args
 
     platform = params.get("platform", "").strip()
@@ -94,10 +94,13 @@ def get_wb_id_route():
         if user_id:
             user_id = user_id.get("public_id", "")
     else:
-        user_id, status_code = find_any()
+        user_dict, status_code = find_any()
         if status_code != 200:
-            return user_id, status_code # jsonify
-        user_id = (user_id.json or {}).get("user_id")
+            return user_dict, status_code  # jsonify
+        user_dict = user_dict.json or {}
+        user_id = user_dict.get("user_id")
+        username = user_dict.get("username") or username # Only change if required
+        platform = user_dict.get("provider") or platform
 
     if not user_id:
         return jsonify(error=f"Couldn't find user {username}"), 404
@@ -147,7 +150,7 @@ def get_floyd_data_route():
     supported_floyd_guess_platforms = ["ps5", "steam", "xsx", "epic"]
 
     floyd_platform = platform
-    floyd_string = ""
+    floyd_string = floyd_string_offline = ""
     floyd_platform_name = username
     if platform == "wb_network":
         floyd_platform = hydra_platform
@@ -177,15 +180,18 @@ def get_floyd_data_route():
         if found:
             if floyd_platform == "steam":
                 floyd_platform_id = str(sanitize_steam_user_id(floyd_platform_id).as_64) # Sanitize cuz mk stores wrong id
+                floyd_string_offline = make_platform_string(floyd_platform, floyd_platform_id)
             floyd_string = make_platform_string(floyd_platform, floyd_platform_id, hydra_id, wbpn_id)
     elif platform in supported_floyd_guess_platforms:
         floyd_platform_id = user_id
         floyd_platform_name = platform_name
         if platform == "steam":
             floyd_platform_id = str(sanitize_steam_user_id(floyd_platform_id).as_64) # Sanitize cuz mk stores wrong id
+            floyd_string_offline = make_platform_string(floyd_platform, floyd_platform_id)
         floyd_string = make_platform_string(platform, floyd_platform_id, hydra_id, wbpn_id)
 
     floyd_challenges = []
+    floyd_challenges_offline = []
     if floyd_string:
         hashed = convert_profile_id_to_seed(floyd_string)
         # replace with floyd counter
@@ -197,6 +203,17 @@ def get_floyd_data_route():
 
         floyd_challenges = [a + 1 for a in floyd_challenges[:10]]
         print(floyd_string, hashed, floyd_counter, "\n", floyd_challenges)
+    if floyd_string_offline:
+        hashed = convert_profile_id_to_seed(floyd_string_offline)
+        floyd_counter = parsed_data.get("parsed", {}).get("encounters_offline", 0)
+        seed1, seed2 = create_seeds_from_key(hashed, floyd_counter)
+
+        floyd_challenges_offline = list(range(37))
+        shuffler(floyd_challenges_offline, seed1, seed2, 10)
+
+        floyd_challenges_offline = [a + 1 for a in floyd_challenges_offline[:10]]
+        print("offline", floyd_string_offline, hashed, floyd_counter, "\n", floyd_challenges_offline)
+
 
     if username.lower().strip() == user_id.lower().strip(): # no username found
         username = platform_name
@@ -232,7 +249,10 @@ def get_floyd_data_route():
         "parsed": parsed_data["parsed"],
         "raw": {floyd_map[f"profilestat{k}"]: v for k, v in parsed_data["raw"].items()},
         "hints": parsed_data["hints"],
-        "challenges": floyd_challenges,
+        "challenges": {
+            "online": floyd_challenges,
+            "offline": floyd_challenges_offline,
+        },
     }
 
     metadata = {

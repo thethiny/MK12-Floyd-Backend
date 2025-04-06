@@ -4,7 +4,7 @@ from msal import PublicClientApplication, SerializableTokenCache
 import os
 import requests
 
-from src.utils import init_secrets, ReloginLimiter, prevent_over_refresh
+from src.utils import prevent_over_refresh
 
 class Xbox:
     TOKEN_CACHE_PATH = "xbox_tokens.json"
