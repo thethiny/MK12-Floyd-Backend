@@ -2,7 +2,7 @@ from typing import Callable
 from flask import current_app, request, jsonify, Blueprint
 
 from src.api.auth import auth_epic
-from src.api.user_ids import get_psn_user_id, get_steam_user_id, get_xbox_xuid
+from src.api.user_ids import get_psn_user_id, get_steam_user_id, get_xbox_xuid, get_psn_web_user_id
 
 platform_bp = Blueprint("platforms", __name__)
 
@@ -32,6 +32,9 @@ def get_platform(platform_func: Callable):
 
     if not user:
         return jsonify(error=f"Couldn't find user {user}"), 404
+    
+    if isinstance(user, dict):
+        return jsonify(user), 200
 
     return jsonify(user_id=user), 200
 
@@ -60,6 +63,10 @@ def auth_platform(platform_func: Callable,):
 @platform_bp.get("/psn")
 def get_psn():
     return get_platform(get_psn_user_id)
+
+@platform_bp.get("/psn_web")
+def get_psn_web():
+    return get_platform(get_psn_web_user_id)
 
 
 @platform_bp.get("xsx")
@@ -94,6 +101,8 @@ def find_any():
 
     if platform in ["psn", "ps4", "ps5"]:
         return get_psn()
+    elif platform == "psn_web":
+        return get_psn_web()
     elif platform == "steam":
         return get_steam()
     elif platform == "hydra":

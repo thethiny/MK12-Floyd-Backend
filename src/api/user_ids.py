@@ -1,3 +1,5 @@
+import base64
+import json
 import os
 import requests
 from steam.steamid import SteamID, steam64_from_url
@@ -5,6 +7,7 @@ from steam.steamid import SteamID, steam64_from_url
 from src.utils import init_secrets
 
 from src.api.xbl import Xbox
+from src.api.psn_web import PSNAuth
 
 init_secrets()
 try:
@@ -41,6 +44,34 @@ def get_psn_user_id(user: str):
     if not user_id:
         raise ValueError(f"Server returned empty user_id!")
     return user_id
+
+def get_psn_web_user_id(token: str):
+    token = token.strip()
+    token_data = json.loads(token)
+    npsso: str = token_data.get("npsso", "")
+    if not npsso:
+        raise ValueError("Missing npsso in token!")
+    
+    tokens = PSNAuth.exchange_npsso(npsso)
+    id_token = tokens.to_dict().get("id_token", "")
+    if not id_token:
+        raise ValueError("Missing id_token in tokens!")
+    
+    # tokens is a jwt, extract from it the username as online_id and the id as sub
+    # extract jwt
+    jwt = id_token.split(".")[1]
+    if not jwt:
+        raise ValueError("Missing jwt in id_token!")
+    jwt_payload = json.loads(base64.urlsafe_b64decode(jwt + "=="))
+    online_id: str = jwt_payload.get("online_id", "")
+    sub: str = jwt_payload.get("sub", "")
+    if not online_id or not sub:
+        raise ValueError("Missing online_id or sub in jwt payload!")
+    
+    return {
+        "username": online_id,
+        "user_id": sub
+    }
 
 def is_valid_steam_id(steam_id):
     return SteamID(steam_id) != 0
