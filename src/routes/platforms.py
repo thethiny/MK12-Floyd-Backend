@@ -27,8 +27,9 @@ def get_platform(platform_func: Callable):
 
     try:
         user = platform_func(username.strip())
-    except ValueError:
-        return jsonify(error=f"Server Error retreiving username {username}"), 400
+    except ValueError as e:
+        msg = str(e) if str(e) and not str(e).isdigit() else f"Server Error retreiving username {username}"
+        return jsonify(error=msg), 400
 
     if not user:
         return jsonify(error=f"Couldn't find user {user}"), 404

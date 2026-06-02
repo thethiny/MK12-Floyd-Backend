@@ -8,6 +8,7 @@ from src.utils import init_secrets
 
 from src.api.xbl import Xbox
 from src.api.psn_web import PSNAuth
+from src.api.psn_service import PSNService
 
 init_secrets()
 try:
@@ -15,6 +16,12 @@ try:
 except Exception as e:
     xbox_client = None
     print(f"Xbox client failed to instantiate due to: {e}")
+
+try:
+    psn_service_client = PSNService(token_cache_folder="db")
+except Exception as e:
+    psn_service_client = None
+    print(f"PSN service client failed to instantiate due to: {e}")
 
 def get_xbox_xuid(user: str):
     if not xbox_client or not xbox_client.available:
@@ -29,17 +36,27 @@ def get_xbox_xuid(user: str):
     return gamertag.strip()
 
 def get_psn_user_id(user: str):
+    return get_psn_user_id_service(user)
+
+def get_psn_user_id_service(user: str):
     user = user.strip()
-    print(f"Getting PSN Profile for {user}")
+    print(f"Getting PSN Profile (service) for {user}")
+    if not psn_service_client or not psn_service_client.available:
+        raise ValueError("PSN auth is offline. Please notify thethiny to fix: npsso expired.")
+    return psn_service_client.get_account_id_by_online_id(user)
+
+def get_psn_user_id_flipscreen(user: str):
+    user = user.strip()
+    print(f"Getting PSN Profile (flipscreen) for {user}")
     url = "https://psn.flipscreen.games/search.php"
     resp = requests.get(url, params={
         "username": user
     })
-    
+
     if resp.status_code//100 != 2:
         print(resp.json())
         raise ValueError(resp.status_code)
-    
+
     user_id = resp.json().get("user_id", "")
     if not user_id:
         raise ValueError(f"Server returned empty user_id!")
