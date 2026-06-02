@@ -1,0 +1,38 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug XBL",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "src.api.xbl"
+        },
+        {
+            "name": "Debug Xbox",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "src.api.xbox"
+        },
+        {
+            "name": "Debug EOS",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "src.api.eos_v2"
+        },
+        {
+            "name": "Flask App",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "app"
+        },
+        {
+            "name": "Floyd Shuffler",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "src.utils.floyd_randomizer"
+        }
+    ]
+}

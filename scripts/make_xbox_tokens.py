@@ -1,12 +1,14 @@
+import json
 import os
 from scripts import load_secrets
 from src.api.xbl import Xbox
 
 if __name__ == "__main__":
-    load_secrets()
+    secrets = load_secrets()
     XBOX_OSRP_TOKEN = os.getenv(
-        "OPSP_XR_CLIENT_ID", os.getenv("creds", {}).get("msclientid", "")  # type: ignore
+        "OPSP_XR_CLIENT_ID", secrets.get("creds", {}).get("msclientid", "")  # type: ignore
     )
+    print("CLIENT ID:", XBOX_OSRP_TOKEN)
     
     tokens_folder = "db"
     # if there's xbox_tokens.json in the current folder, rename it to the file's creation timestamp

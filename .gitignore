@@ -8,3 +8,10 @@ db*/
 
 dumps
 *.log
+
+src/__init__.py
+src/api/eos.py
+src/api/eos_doc.py
+src/api/eos_v2.py
+src/api/xbox.py
+src/utils/brute_force.py
