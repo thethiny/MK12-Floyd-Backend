@@ -1,9 +1,14 @@
 import base64
 import json
 import os
-import requests
-from steam.steamid import SteamID, steam64_from_url
+import re
+import xml.etree.ElementTree as ET
+from urllib.parse import quote
 
+import requests
+from steam.steamid import SteamID
+
+from src.api.errors import PlatformLookupError
 from src.utils import init_secrets
 
 from src.api.xbl import Xbox
@@ -96,25 +101,63 @@ def is_valid_steam_id(steam_id):
 def sanitize_steam_user_id(steam_id: str):
     return SteamID(SteamID(steam_id).as_32)
 
-def get_steam_user_id(user: str) -> str:
-    if user.lower().startswith("http"):
-        steam_id = str(steam64_from_url(user))
-        if not steam_id or steam_id == "None":
-            raise ValueError(f"Couldn't find user for {user}")
+STEAM_COMMUNITY_URL = "https://steamcommunity.com"
+STEAM_HTTP_TIMEOUT = 15
+STEAM_PROFILE_URL_RE = re.compile(r"^https?://steamcommunity\.com/(?P<type>profiles|id)/(?P<value>[^/?#]+)", re.IGNORECASE)
+STEAM_CONTACT_ERROR = "Steam lookup failed. Please contact thethiny to fix."
+
+
+def fetch_steam_vanity_id(vanity: str) -> str:
+    """Resolve a Steam vanity name to a steam64 using the profile XML endpoint."""
+    url = f"{STEAM_COMMUNITY_URL}/id/{quote(vanity, safe='')}"
+    try:
+        resp = requests.get(url, params={"xml": 1}, timeout=STEAM_HTTP_TIMEOUT)
+    except requests.exceptions.RequestException as e:
+        print(f"Steam lookup for {vanity} failed to connect: {e!r}")
+        raise PlatformLookupError(500, STEAM_CONTACT_ERROR)
+
+    if resp.status_code == 429:
+        print(f"Steam lookup for {vanity} was rate limited (429)")
+        raise PlatformLookupError(429, "Try again later")
+    if resp.status_code == 404:
+        raise PlatformLookupError(404, f"Couldn't find steam user {vanity}")
+    if resp.status_code != 200:
+        print(f"Steam lookup for {vanity} returned unexpected status {resp.status_code}")
+        raise PlatformLookupError(500, STEAM_CONTACT_ERROR)
+
+    try:
+        root = ET.fromstring(resp.content)
+    except ET.ParseError as e:
+        print(f"Steam lookup for {vanity} returned unparsable XML: {e!r}")
+        raise PlatformLookupError(500, STEAM_CONTACT_ERROR)
+
+    steam_id = (root.findtext("steamID64") or "").strip()
+    if steam_id:
         return steam_id
+    if root.findtext("error"):  # Steam answers 200 with <error> when the profile doesn't exist
+        raise PlatformLookupError(404, f"Couldn't find steam user {vanity}")
+
+    print(f"Steam lookup for {vanity} returned XML without a steamID64")
+    raise PlatformLookupError(500, STEAM_CONTACT_ERROR)
+
+
+def get_steam_user_id(user: str) -> str:
+    user = user.strip()
+    url_match = STEAM_PROFILE_URL_RE.match(user)
+    if user.lower().startswith("http"):
+        if not url_match:
+            raise PlatformLookupError(404, f"Couldn't find steam user {user}")
+        if url_match["type"].lower() == "id":
+            return fetch_steam_vanity_id(url_match["value"])
+        user = url_match["value"]  # /profiles/<id> carries the id, no request needed
 
     steam_id = str(SteamID(user)).strip()
 
     if steam_id and steam_id != "0":
         # recreate steam_id for users with old profiles
-        steam_id = str(sanitize_steam_user_id(steam_id).as_64)
-        return steam_id
+        return str(sanitize_steam_user_id(steam_id).as_64)
 
-    steam_id = str(SteamID.from_url(f"https://steamcommunity.com/id/{user}")) # type: ignore
-    if not steam_id or steam_id == "None":
-        raise ValueError(f"Couldn't find steam user {user}")
-
-    return steam_id
+    return fetch_steam_vanity_id(user)
 
 if __name__ == "__main__":
     print(get_steam_user_id("76561199811000896"))

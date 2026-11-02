@@ -2,6 +2,7 @@ from typing import Callable
 from flask import current_app, request, jsonify, Blueprint
 
 from src.api.auth import auth_epic
+from src.api.errors import PlatformLookupError
 from src.api.user_ids import get_psn_user_id, get_steam_user_id, get_xbox_xuid, get_psn_web_user_id
 
 platform_bp = Blueprint("platforms", __name__)
@@ -27,6 +28,8 @@ def get_platform(platform_func: Callable):
 
     try:
         user = platform_func(username.strip())
+    except PlatformLookupError as e:
+        return jsonify(error=e.message), e.status_code
     except ValueError as e:
         msg = str(e) if str(e) and not str(e).isdigit() else f"Server Error retreiving username {username}"
         return jsonify(error=msg), 400
