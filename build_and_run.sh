@@ -9,8 +9,8 @@ docker run -it -d \
         -v `pwd`/secrets.yaml:/app/secrets.yaml \
         -v $sock_path:/app/sock \
         -v `pwd`/db:/app/db \
-        --log-opt max-size=1m \
-        --log-opt max-file=1 \
+        --log-opt max-size=10m \
+        --log-opt max-file=10 \
         --restart=on-failure \
         $image
 docker logs -tf $name
