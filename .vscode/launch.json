@@ -33,6 +33,12 @@
             "type": "debugpy",
             "request": "launch",
             "module": "src.utils.floyd_randomizer"
+        },
+        {
+            "name": "Floyd Playground",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "floyd_playground"
         }
     ]
 }

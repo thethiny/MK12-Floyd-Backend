@@ -4,6 +4,8 @@ __pycache__
 test.json
 test.py
 lookup_for.py
+floyd_playground.py
+docs
 db*/
 
 dumps

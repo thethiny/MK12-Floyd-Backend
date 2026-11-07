@@ -11,6 +11,7 @@ if not is_windows:
 
 from src.utils.floyd import get_floyd_data, get_floyd_maps, parse_floyd_data
 from src.utils.floyd_randomizer import convert_profile_id_to_seed, create_seeds_from_key, make_platform_string, shuffler
+from src.utils.taco import get_taco_tower
 from src.utils import init_secrets
 steam_key, *_ = init_secrets()
 
@@ -253,6 +254,7 @@ def get_floyd_data_route():
             "online": floyd_challenges,
             "offline": floyd_challenges_offline,
         },
+        "taco_tower": get_taco_tower(hydra_id, parsed_data["parsed"]["victories"]), # Seeded by hydra_id, no platform string needed
     }
 
     metadata = {
